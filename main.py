@@ -2,12 +2,14 @@ import re
 import requests
 import os
 import errno
-
+from time import sleep
 
 # Nastepny plik gdy id niższe
 
 # Będzie tylko działać dla folderów na chomiku gdzie
 # sortowanie jest według daty dodania a pliki są ustawione według kolejnych indexów
+# poprawione - działa dla wszytkich plików mp3
+# przykładowy folder https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
@@ -19,20 +21,20 @@ def ask_user():
     return url, folder_name, file_extension
 
 
-def filter_url(url):
-    url_split = re.split(r'id=([0-9]+)', url)
-    id_num = int(url_split[1])
-    url_split.pop(1)
-    return id_num, url_split
+# def filter_url(url):
+#     url_split = re.split(r'id=([0-9]+)', url)
+#     id_num = int(url_split[1])
+#     url_split.pop(1)
+#     return id_num, url_split
 
 
-def generate_numbers(num, index, length):
-    numbers = []
-    after = length - index
-    lowest_number = num - after
-    for i in range(length):
-        numbers.append(lowest_number + i)
-    return numbers
+# def generate_numbers(num, index, length):
+#     numbers = []
+#     after = length - index
+#     lowest_number = num - after
+#     for i in range(length):
+#         numbers.append(lowest_number + i)
+#     return numbers
 
 
 def generate_urls(numbers_list, url_split):
@@ -68,7 +70,18 @@ def download_links_save_to_files(urls, dir_name, file_type):
     i = 0
     for url in urls:
         i += 1
-        r = requests.get(url)
+
+        j = 0
+        not_found = True
+        while j < 5 and not_found:
+            try:
+                r = requests.get(url)
+                not_found = False
+            except requests.exceptions.ConnectionError:
+                print('Connection error at file:', i)
+                sleep(1)
+                j += 1
+
         file_path = dir_path + '\\' + str(i) + f'.{file_type}'
         with open(file_path, "wb") as file:
             file.write(r.content)
