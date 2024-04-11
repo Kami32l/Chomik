@@ -5,6 +5,9 @@ import re
 # Będzie tylko działać dla folderów na chomiku gdzie
 # sortowanie jest według daty dodania a pliki są ustawione według kolejnych indexów
 
+# TODO pobieraj pliki z linków
+# TODO podajesz link do folderu z plikami, retrieve linki do pobrania dla kazdego pliku
+
 
 def ask_user():
     url = input('url: ')
@@ -35,6 +38,11 @@ def generate_urls(numbers_list, url_split):
         new_url = url_split[0] + 'id=' + str(number) + url_split[1]
         ready_urls.append(new_url)
     return ready_urls
+
+
+def download_links(urls):
+    
+
 
 
 def main():
