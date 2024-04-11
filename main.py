@@ -9,17 +9,14 @@ import errno
 # Będzie tylko działać dla folderów na chomiku gdzie
 # sortowanie jest według daty dodania a pliki są ustawione według kolejnych indexów
 
-# TODO pobieraj pliki z linków
-# TODO podajesz link do folderu z plikami, retrieve linki do pobrania dla kazdego pliku
+SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
 
 def ask_user():
     url = input('url: ')
-    file_index = int(input('index pliku: '))
-    num_of_files = int(input('ile plikow: '))
     folder_name = input('nazwa folderu: ')
     file_extension = input('rozszerzenie pliku (np mp3): ')
-    return url, file_index, num_of_files, folder_name, file_extension
+    return url, folder_name, file_extension
 
 
 def filter_url(url):
@@ -43,7 +40,16 @@ def generate_urls(numbers_list, url_split):
     for number in numbers_list:
         new_url = url_split[0] + 'id=' + str(number) + url_split[1]
         ready_urls.append(new_url)
-    ready_urls.reverse()
+    return ready_urls
+
+
+def find_urls(url):
+    # TODO podajesz link do folderu z plikami, retrieve linki do pobrania dla kazdego pliku
+    r = requests.get(url)
+    print(r)
+    ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    print(ids)
+    ready_urls = generate_urls(ids, SPLIT_URL)
     return ready_urls
 
 
@@ -69,11 +75,9 @@ def download_links_save_to_files(urls, dir_name, file_type):
 
 
 def main():
-    address_url, index_pliku, ilosc, nazwa_folderu, rozszerzenie_pliku = ask_user()
-    numer_id, adres_rozdzielony = filter_url(address_url)
-    numery = generate_numbers(numer_id, index_pliku, ilosc)
-    adresy = generate_urls(numery, adres_rozdzielony)
+    address_url, nazwa_folderu, rozszerzenie_pliku = ask_user()
 
+    adresy = find_urls(address_url)
     for i in range(len(adresy)):
         print(i, adresy[i])
 
