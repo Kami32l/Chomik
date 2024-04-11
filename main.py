@@ -1,7 +1,4 @@
-import re
-import requests
-import os
-import errno
+import re, requests, os, errno
 from time import sleep
 
 # Nastepny plik gdy id niższe
@@ -10,6 +7,10 @@ from time import sleep
 # sortowanie jest według daty dodania a pliki są ustawione według kolejnych indexów
 # poprawione - działa dla wszytkich plików mp3
 # przykładowy folder https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
+
+# TODO odczytywanie tagów z plików - rozszerzenie, kolejność utworów, nazwę(?)
+# TODO Zapisywanie pliku na podstawie tagów
+# TODO handling downlaod errors, przerwania w pobieraniu i wznowienie pobierania lub pomnięcie (spytanie użytkownika)
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
