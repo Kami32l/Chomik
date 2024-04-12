@@ -1,56 +1,57 @@
-import re
-import requests
-import os
-import errno
-
+import re, requests, os, errno
+from time import sleep
 
 # Nastepny plik gdy id niższe
 
-# Będzie tylko działać dla folderów na chomiku gdzie
-# sortowanie jest według daty dodania a pliki są ustawione według kolejnych indexów
+# Będzie tylko działać dla folderów na chomiku gdzie sortowanie jest według daty dodania a pliki są ustawione według
+# kolejnych indexów poprawione - działa dla wszytkich plików mp3 (problem - gdy nie w kolejnosci to i tak wedlug
+# pobierania zapisuje nazwy) przykładowy folder poprzestawiany
+# brak obsługi dla innych plików - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
+# https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
+# folder z dużymi plikami mp3
+# https://chomikuj.pl/barmar7/2017+ROK+2017/01+STYCZEN+2017/Audioboki+w+MP+4+i+mp3
 
-# TODO pobieraj pliki z linków
-# TODO podajesz link do folderu z plikami, retrieve linki do pobrania dla kazdego pliku
+# TODO odczytywanie tagów z plików - rozszerzenie, kolejność utworów, nazwę(?)
+# TODO Zapisywanie nazwy, kolejnośći pliku na podstawie tagów
+# TODO pomnięcie pobierania pliku (spytanie użytkownika)
+
+SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
 
 def ask_user():
     url = input('url: ')
-    file_index = int(input('index pliku: '))
-    num_of_files = int(input('ile plikow: '))
     folder_name = input('nazwa folderu: ')
-    file_extension = input('rozszerzenie pliku (np mp3): ')
-    return url, file_index, num_of_files, folder_name, file_extension
-
-
-def filter_url(url):
-    url_split = re.split(r'id=([0-9]+)', url)
-    id_num = int(url_split[1])
-    url_split.pop(1)
-    return id_num, url_split
-
-
-def generate_numbers(num, index, length):
-    numbers = []
-    after = length - index
-    lowest_number = num - after
-    for i in range(length):
-        numbers.append(lowest_number + i)
-    return numbers
+    return url, folder_name
 
 
 def generate_urls(numbers_list, url_split):
+    # generates download urls
     ready_urls = []
     for number in numbers_list:
         new_url = url_split[0] + 'id=' + str(number) + url_split[1]
         ready_urls.append(new_url)
-    ready_urls.reverse()
     return ready_urls
 
 
-def download_links_save_to_files(urls, dir_name, file_type):
+def find_ids(url):
+    # finds ids of every file in directory
+    r = requests.get(url)
+    print(r)
+    ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    print(ids)
+    return ids
 
+
+def download_files_from_url(urls, dir_name, file_type="mp3"):
+    """
+    :param urls: list - one or more should be supplied
+    :param dir_name: name of the directory files will be saved in
+    :param file_type: file extension - eg: mp3, used for saving files
+    :return:
+    """
     dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
 
+    # checks if dir_name directory exists
     if not os.path.exists(dir_path):
         try:
             os.makedirs(dir_path)
@@ -59,25 +60,49 @@ def download_links_save_to_files(urls, dir_name, file_type):
             if error.errno != errno.EEXIST:
                 raise
 
-    i = 0
-    for url in urls:
-        i += 1
-        r = requests.get(url)
-        file_path = dir_path + '\\' + str(i) + f'.{file_type}'
-        with open(file_path, "wb") as file:
-            file.write(r.content)
+    if len(urls) == 1:
+        path_to_file = dir_path + '\\' + '1' + f'.{file_type}'
+        download_file(urls[0], path_to_file)
+    else:
+        i = 0
+        for url in urls:
+            i += 1
+            path_to_file = dir_path + '\\' + str(i) + f'.{file_type}'
+            download_file(url, path_to_file)
+
+
+def download_file(url, file_path):
+    # https://stackoverflow.com/a/35504626 - alternative to handle retries
+    j = 0
+    not_found = True
+    while j < 3 and not_found:
+        try:
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(file_path, "wb") as file:
+                    # will download in chunks od chunk_size at once
+                    for chunk in r.iter_content(chunk_size=1024 * 1024):
+                        file.write(chunk)
+            not_found = False
+
+        except requests.exceptions.RequestException as error:
+            print(f"An error occurred: {error}")
+            sleep(0.1)
+            j += 1
 
 
 def main():
-    address_url, index_pliku, ilosc, nazwa_folderu, rozszerzenie_pliku = ask_user()
-    numer_id, adres_rozdzielony = filter_url(address_url)
-    numery = generate_numbers(numer_id, index_pliku, ilosc)
-    adresy = generate_urls(numery, adres_rozdzielony)
+    address_url, nazwa_folderu = ask_user()
+
+    identyfikatory = find_ids(address_url)
+    adresy = generate_urls(identyfikatory, SPLIT_URL)
 
     for i in range(len(adresy)):
         print(i, adresy[i])
 
-    download_links_save_to_files(adresy, nazwa_folderu, rozszerzenie_pliku)
+    download_files_from_url(adresy, nazwa_folderu)
+
+    print('Finished downloading successfully.')
 
 
 main()
