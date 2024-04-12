@@ -7,14 +7,19 @@ from tinytag import TinyTag
 # Będzie tylko działać dla folderów na chomiku gdzie sortowanie jest według daty dodania a pliki są ustawione według
 # kolejnych indexów poprawione - działa dla wszytkich plików mp3 (problem - gdy nie w kolejnosci to i tak wedlug
 # pobierania zapisuje nazwy) przykładowy folder poprzestawiany
+# poprawione nazwy plików - teraz odczytuje z metadanych pobranych plików więc koljeność powinna być git
+# (jest problem gdy w jednym folderze jest wiele książek pojedyńczych albo tycxh które w tytule mają już numer wtedy dublowanie)
 # brak obsługi dla innych plików - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
 # https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
 # folder z dużymi plikami mp3
 # https://chomikuj.pl/barmar7/2017+ROK+2017/01+STYCZEN+2017/Audioboki+w+MP+4+i+mp3
 
-# TODO odczytywanie tagów z plików - rozszerzenie, kolejność utworów, nazwę(?)
-# TODO Zapisywanie nazwy, kolejnośći pliku na podstawie tagów
-# TODO pomnięcie pobierania pliku (spytanie użytkownika)
+# TODO idiot proof inputs
+## url - illegal keys?
+## foldername - illegal keys?
+## check if url exists
+## what if no files found at url?
+## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
