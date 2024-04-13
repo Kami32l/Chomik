@@ -1,18 +1,22 @@
 import re, requests, os, errno
 from time import sleep
 from tinytag import TinyTag
+from urllib.parse import unquote_plus
 
 # Nastepny plik gdy id niższe
 
 # Będzie tylko działać dla folderów na chomiku gdzie sortowanie jest według daty dodania a pliki są ustawione według
 # kolejnych indexów poprawione - działa dla wszytkich plików mp3 (problem - gdy nie w kolejnosci to i tak wedlug
-# pobierania zapisuje nazwy) przykładowy folder poprzestawiany
+# pobierania zapisuje nazwy)
 # poprawione nazwy plików - teraz odczytuje z metadanych pobranych plików więc koljeność powinna być git
 # (jest problem gdy w jednym folderze jest wiele książek pojedyńczych albo tycxh które w tytule mają już numer wtedy dublowanie)
 # brak obsługi dla innych plików - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
+# przykładowy folder poprzestawiany:
 # https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
-# folder z dużymi plikami mp3
+# folder z dużymi plikami mp3:
 # https://chomikuj.pl/barmar7/2017+ROK+2017/01+STYCZEN+2017/Audioboki+w+MP+4+i+mp3
+# przykładowy z jpg i mp3 plikami:
+# https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
 # TODO idiot proof inputs
 ## url - illegal keys?
@@ -46,21 +50,23 @@ def find_ids_names(url):
     r = requests.get(url)
     print(r)
     test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-    if test_1 is not None:
-        names_ids = re.findall(r'href="\/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
-        for name, ida in names_ids:
-            name_splitted = name.split('/')
-            print(name_splitted)
-            names.append(name)
-            ids.append(ida)
-
-    else:
-        names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+\/(.+),([0-9]+).mp3', r.text)
     names = []
     ids = []
+
+    if test_1 is None:
+        names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
+
+    else:
+        names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
+
     for name, ida in names_ids:
-        names.append(name)
+        # print(name, ida)
+        name_split = name.split('/')
+        decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
+        print("decoded_name:", decoded_name)
+        names.append(decoded_name)
         ids.append(ida)
+
     return names, ids
 
 
