@@ -20,7 +20,8 @@ from tinytag import TinyTag
 ## check if url exists
 ## what if no files found at url?
 ## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url
-## what if multiple types of files inside folder? - crash
+## FIXED what if multiple types of files inside folder? - crash
+## what if no tags in metadata
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
@@ -39,27 +40,28 @@ def generate_urls(numbers_list, url_split):
         ready_urls.append(new_url)
     return ready_urls
 
-# test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-# if test_1 != None:
-#     ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-# else:
-#     ids = re.findall(r'<a class="downloadAction downloadContext" href=".+,([0-9]+).mp3', r.text)
-# jeżeli istnieje class="fileActionsButtons clear visibleButtons  fileIdContainer":
-# rób normalny
-# jeżeli istnieje class="downloadAction downloadContext":
-# r'<a class="downloadAction downloadContext" href=".+,[0-9]+.mp3'
 
-def find_ids(url):
+def find_ids_names(url):
     # finds ids of every file in directory
     r = requests.get(url)
     print(r)
     test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-    if test_1 != None:
-        ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    if test_1 is not None:
+        names_ids = re.findall(r'href="\/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
+        for name, ida in names_ids:
+            name_splitted = name.split('/')
+            print(name_splitted)
+            names.append(name)
+            ids.append(ida)
+
     else:
-        ids = re.findall(r'<a class="downloadAction downloadContext" href=".+,([0-9]+).mp3', r.text)
-    print(ids)
-    return ids
+        names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+\/(.+),([0-9]+).mp3', r.text)
+    names = []
+    ids = []
+    for name, ida in names_ids:
+        names.append(name)
+        ids.append(ida)
+    return names, ids
 
 
 def download_files_from_url(urls, dir_name, file_type="mp3"):
@@ -130,7 +132,7 @@ def rename_file(dir_path, filename):
 def main():
     address_url, nazwa_folderu = ask_user()
 
-    identyfikatory = find_ids(address_url)
+    nazwy, identyfikatory = find_ids_names(address_url)
     adresy = generate_urls(identyfikatory, SPLIT_URL)
 
     for i in range(len(adresy)):
