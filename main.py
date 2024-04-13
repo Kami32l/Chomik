@@ -1,6 +1,6 @@
 import re, requests, os, errno
 from time import sleep
-from tinytag import TinyTag
+# from tinytag import TinyTag
 from urllib.parse import unquote_plus
 
 # Nastepny plik gdy id niższe
@@ -70,11 +70,12 @@ def find_ids_names(url):
     return names, ids
 
 
-def download_files_from_url(urls, dir_name, file_type="mp3"):
+def download_files_from_url(urls, dir_name, names, file_type="mp3"):
     """
     :param urls: list - one or more should be supplied
     :param dir_name: name of the directory files will be saved in
     :param file_type: file extension - eg: mp3, used for saving files
+    :param names: list of filenames
     :return:
     """
     dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
@@ -89,16 +90,16 @@ def download_files_from_url(urls, dir_name, file_type="mp3"):
                 raise
 
     if len(urls) == 1:
-        path_to_file = dir_path + '\\' + '1' + f'.{file_type}'
+        path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
         download_file(urls[0], path_to_file)
-        rename_file(dir_path, f'1.{file_type}')
+        # rename_file(dir_path, f'1.{file_type}')
     else:
         i = 0
         for url in urls:
+            path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
             i += 1
-            path_to_file = dir_path + '\\' + str(i) + f'.{file_type}'
             download_file(url, path_to_file)
-            rename_file(dir_path, f'{i}.{file_type}')
+            # rename_file(dir_path, f'{i}.{file_type}')
 
 
 def download_file(url, file_path):
@@ -121,18 +122,18 @@ def download_file(url, file_path):
             j += 1
 
 
-def rename_file(dir_path, filename):
-    """
-    Changes name of the file to the combination of name and track number. Reads data from ID3 tags (audio files metadata).
-    :param dir_path: path of the directory of the file
-    :param filename: current name of the file
-    :return: 
-    """""
-    file_path = dir_path + '\\' + filename
-
-    tag = TinyTag.get(file_path)
-
-    os.rename(file_path, dir_path + '\\' + f'{tag.track}. {tag.title}.mp3')
+# def rename_file(dir_path, filename):
+#     """
+#     Changes name of the file to the combination of name and track number. Reads data from ID3 tags (audio files metadata).
+#     :param dir_path: path of the directory of the file
+#     :param filename: current name of the file
+#     :return:
+#     """""
+#     file_path = dir_path + '\\' + filename
+#
+#     tag = TinyTag.get(file_path)
+#
+#     os.rename(file_path, dir_path + '\\' + f'{tag.track}. {tag.title}.mp3')
 
 
 def main():
@@ -144,7 +145,7 @@ def main():
     for i in range(len(adresy)):
         print(i, adresy[i])
 
-    download_files_from_url(adresy, nazwa_folderu)
+    download_files_from_url(adresy, nazwa_folderu, nazwy)
 
     print('Finished downloading successfully.')
 
