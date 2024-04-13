@@ -20,6 +20,7 @@ from tinytag import TinyTag
 ## check if url exists
 ## what if no files found at url?
 ## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url
+## what if multiple types of files inside folder? - crash
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
@@ -38,12 +39,25 @@ def generate_urls(numbers_list, url_split):
         ready_urls.append(new_url)
     return ready_urls
 
+# test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+# if test_1 != None:
+#     ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+# else:
+#     ids = re.findall(r'<a class="downloadAction downloadContext" href=".+,([0-9]+).mp3', r.text)
+# jeżeli istnieje class="fileActionsButtons clear visibleButtons  fileIdContainer":
+# rób normalny
+# jeżeli istnieje class="downloadAction downloadContext":
+# r'<a class="downloadAction downloadContext" href=".+,[0-9]+.mp3'
 
 def find_ids(url):
     # finds ids of every file in directory
     r = requests.get(url)
     print(r)
-    ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    if test_1 != None:
+        ids = re.findall(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+    else:
+        ids = re.findall(r'<a class="downloadAction downloadContext" href=".+,([0-9]+).mp3', r.text)
     print(ids)
     return ids
 
