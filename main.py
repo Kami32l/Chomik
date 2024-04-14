@@ -207,5 +207,9 @@ def main():
 
         print('Zakończono pobieranie pomyślnie.')
 
+        continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
+        if not (continue_input == 'y' or continue_input == 'Y'):
+            break
+
 
 main()
