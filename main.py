@@ -1,17 +1,9 @@
 import re, requests, os, errno
 from time import sleep
-# from tinytag import TinyTag
 from urllib.parse import unquote_plus, urlparse
 
 
-# Nastepny plik gdy id niższe
-
-# Będzie tylko działać dla folderów na chomiku gdzie sortowanie jest według daty dodania a pliki są ustawione według
-# kolejnych indexów poprawione - działa dla wszytkich plików mp3 (problem - gdy nie w kolejnosci to i tak wedlug
-# pobierania zapisuje nazwy)
-# poprawione nazwy plików - teraz odczytuje z metadanych pobranych plików więc koljeność powinna być git
-# (jest problem gdy w jednym folderze jest wiele książek pojedyńczych albo tycxh które w tytule mają już numer wtedy dublowanie)
-# brak obsługi dla innych plików - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
+# brak obsługi dla innych plików niż mp3 - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
 # przykładowy folder poprzestawiany:
 # https://chomikuj.pl/Konjarek/Audiobook/Andrzej+Pilipiuk/*c5*9awiaty+Pilipiuka/Raport+z+p*c3*b3*c5*82nocy
 # folder z dużymi plikami mp3:
@@ -19,33 +11,29 @@ from urllib.parse import unquote_plus, urlparse
 # przykładowy z jpg i mp3 plikami:
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
-# TODO idiot proof inputs
-## url - illegal keys? --fixed
-## foldername - illegal keys? -- fixed
-## check if url exists -- check response  --fixed
-## what if no files found at url?
-## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url --fixed
-
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
 
 def ask_user():
-    invalid_url_response = 'Url doesnt seem to be valid.'
+    response_to_incorrect_url = 'Url doesnt seem to be valid.'
     while True:
         os.system('cls')
         url = input('url: ')
         if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
             # print('chomik')
-            print(invalid_url_response)
+            print(response_to_incorrect_url)
+            sleep(3)
             continue
         if url.startswith('chomikuj.pl'):
             url = 'https://' + url
         if uri_validator(url) is False: #does it even do anythin?
             # print('uri validator')
-            print(invalid_url_response)
+            print(response_to_incorrect_url)
+            sleep(3)
             continue
         if url_exists(url) is False:
-            print(invalid_url_response)
+            print(response_to_incorrect_url)
+            sleep(3)
             continue
         break
 
@@ -121,8 +109,9 @@ def generate_urls(numbers_list, url_split):
 def find_ids_names(url):
     # finds ids of every file in directory
     r = requests.get(url)
-    print(r)
+    # print(r)
     test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
+
     names = []
     ids = []
 
@@ -161,6 +150,8 @@ def download_files_from_url(urls, dir_name, names, file_type="mp3"):
             # there is directory already.
             if error.errno != errno.EEXIST:
                 raise
+    # else:
+    #     print("Folder już istnieje.")
 
     if len(urls) == 1:
         path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
@@ -195,19 +186,30 @@ def download_file(url, file_path):
 
 
 def main():
-    address_url, nazwa_folderu = ask_user()
+    while True:
+        os.system('cls')
+        address_url, nazwa_folderu = ask_user()
 
-    nazwy, identyfikatory = find_ids_names(address_url)
-    adresy = generate_urls(identyfikatory, SPLIT_URL)
+        nazwy, identyfikatory = find_ids_names(address_url)
+        if len(nazwy) == 0 or len(identyfikatory) == 0:
+            print("Nie znaleziono plików możliwych do pobrania.")
+            sleep(3)
+            continue
 
-    # for i in range(len(adresy)):
-    #     print(i, adresy[i])
+        adresy = generate_urls(identyfikatory, SPLIT_URL)
 
-    print('Rozpoczynanie pobierania.')
+        # for i in range(len(adresy)):
+        #     print(i, adresy[i])
 
-    download_files_from_url(adresy, nazwa_folderu, nazwy)
+        print('Rozpoczynanie pobierania.')
 
-    print('Zakończono pobieranie pomyślnie.')
+        download_files_from_url(adresy, nazwa_folderu, nazwy)
+
+        print('Zakończono pobieranie pomyślnie.')
+
+        continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
+        if not (continue_input == 'y' or continue_input == 'Y'):
+            break
 
 
 main()
