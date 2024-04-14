@@ -1,7 +1,8 @@
 import re, requests, os, errno
 from time import sleep
 # from tinytag import TinyTag
-from urllib.parse import unquote_plus
+from urllib.parse import unquote_plus, urlparse
+
 
 # Nastepny plik gdy id niższe
 
@@ -19,19 +20,39 @@ from urllib.parse import unquote_plus
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
 # TODO idiot proof inputs
-## url - illegal keys?
+## url - illegal keys? --fixed
 ## foldername - illegal keys?
-## check if url exists
+## check if url exists -- check response
 ## what if no files found at url?
-## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in ur
+## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url --fixed
 
 SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
 
 def ask_user():
-    url = input('url: ')
+    while True:
+        url = input('url: ')
+        os.system('cls')
+        if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
+            print('chomik')
+            continue
+        if url.startswith('chomikuj.pl'):
+            url = 'https://' + url
+        if uri_validator(url) is False: #does it even do anythin?
+            print('uri validator')
+            continue
+        break
+
     folder_name = input('nazwa folderu: ')
     return url, folder_name
+
+
+def uri_validator(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except AttributeError:
+        return False
 
 
 def generate_urls(numbers_list, url_split):
