@@ -32,8 +32,8 @@ SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 def ask_user():
     invalid_url_response = 'Url doesnt seem to be valid.'
     while True:
-        url = input('url: ')
         os.system('cls')
+        url = input('url: ')
         if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
             # print('chomik')
             print(invalid_url_response)
