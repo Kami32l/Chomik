@@ -21,8 +21,8 @@ from urllib.parse import unquote_plus, urlparse
 
 # TODO idiot proof inputs
 ## url - illegal keys? --fixed
-## foldername - illegal keys?
-## check if url exists -- check response
+## foldername - illegal keys? -- fixed
+## check if url exists -- check response  --fixed
 ## what if no files found at url?
 ## accept 'https://chomikuj.pl/' and 'chomikuj.pl/' in url --fixed
 
@@ -30,16 +30,22 @@ SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
 
 
 def ask_user():
+    invalid_url_response = 'Url doesnt seem to be valid.'
     while True:
         url = input('url: ')
         os.system('cls')
         if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
             # print('chomik')
+            print(invalid_url_response)
             continue
         if url.startswith('chomikuj.pl'):
             url = 'https://' + url
         if uri_validator(url) is False: #does it even do anythin?
             # print('uri validator')
+            print(invalid_url_response)
+            continue
+        if url_exists(url) is False:
+            print(invalid_url_response)
             continue
         break
 
@@ -84,6 +90,15 @@ def is_valid_folder_name(name: str):
         # )
         return False
     return True
+
+
+def url_exists(url):
+    r = requests.get(url)
+    if r.status_code == 200:
+        return True
+
+    elif r.status_code == 404:
+        return False
 
 
 def uri_validator(url):
