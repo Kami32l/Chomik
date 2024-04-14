@@ -34,17 +34,56 @@ def ask_user():
         url = input('url: ')
         os.system('cls')
         if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
-            print('chomik')
+            # print('chomik')
             continue
         if url.startswith('chomikuj.pl'):
             url = 'https://' + url
         if uri_validator(url) is False: #does it even do anythin?
-            print('uri validator')
+            # print('uri validator')
             continue
         break
 
-    folder_name = input('nazwa folderu: ')
+    while True:
+        folder_name = input('nazwa folderu: ')
+        if not is_valid_folder_name(folder_name):
+            continue
+        break
+
     return url, folder_name
+
+
+def is_valid_folder_name(name: str):
+    # Define a regular expression pattern to match forbidden characters
+    ILLEGAL_NTFS_CHARS = r'[<>:/\\|?*\"]|[\0-\31]'
+    # Define a list of forbidden names
+    FORBIDDEN_NAMES = ['CON', 'PRN', 'AUX', 'NUL',
+                       'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
+                       'COM6', 'COM7', 'COM8', 'COM9',
+                       'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5',
+                       'LPT6', 'LPT7', 'LPT8', 'LPT9']
+    # Check for forbidden characters
+    match = re.search(ILLEGAL_NTFS_CHARS, name)
+    if match:
+        # raise ValueError(
+        #     f"Invalid character {match[0]} for filename {name}")
+        return False
+    # Check for forbidden names
+    if name.upper() in FORBIDDEN_NAMES:
+        # raise ValueError(f"{name} is a reserved folder name in windows")
+        return False
+    # Check for empty name (disallowed in Windows)
+    if name.strip() == "":
+        # raise ValueError("Empty file name not allowed in Windows")
+        return False
+    # Check for names starting or ending with dot or space
+    match = re.match(r'^[. ]|.*[. ]$', name)
+    if match:
+        # raise ValueError(
+        #     f"Invalid start or end character ({match[0]})"
+        #     f" in folder name {name}"
+        # )
+        return False
+    return True
 
 
 def uri_validator(url):
