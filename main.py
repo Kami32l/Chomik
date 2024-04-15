@@ -58,24 +58,16 @@ def is_valid_folder_name(name: str):
     # Check for forbidden characters
     match = re.search(ILLEGAL_NTFS_CHARS, name)
     if match:
-        # raise ValueError(
-        #     f"Invalid character {match[0]} for filename {name}")
         return False
     # Check for forbidden names
     if name.upper() in FORBIDDEN_NAMES:
-        # raise ValueError(f"{name} is a reserved folder name in windows")
         return False
     # Check for empty name (disallowed in Windows)
     if name.strip() == "":
-        # raise ValueError("Empty file name not allowed in Windows")
         return False
     # Check for names starting or ending with dot or space
     match = re.match(r'^[. ]|.*[. ]$', name)
     if match:
-        # raise ValueError(
-        #     f"Invalid start or end character ({match[0]})"
-        #     f" in folder name {name}"
-        # )
         return False
     return True
 
@@ -84,7 +76,6 @@ def url_exists(url):
     r = requests.get(url)
     if r.status_code == 200:
         return True
-
     elif r.status_code == 404:
         return False
 
