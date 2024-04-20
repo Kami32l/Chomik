@@ -37,12 +37,13 @@ class DownloadWindow(tk.Toplevel):
 
     def setup_ui(self):
         self.title("Download Status")
-        ttk.Label(self, text="Rozpoczynanie").grid(row=0, column=0, padx=5, pady=5)
+        self.labelvar = tk.StringVar()
+        self.labelvar.set('Pobieranie')
+        self.status_label = ttk.Label(self, textvariable=self.labelvar).grid(row=0, column=0, padx=5, pady=5)
         self.progress = ttk.Progressbar(self, mode='determinate', maximum=100)
         self.progress.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
         self.cancel_button = ttk.Button(self, text="Przerwij", command=self.cancel_download)
         self.cancel_button.grid(row=2, column=0, padx=5, pady=5)
-
         self.start_download()
 
     def start_download(self):
@@ -57,7 +58,7 @@ class DownloadWindow(tk.Toplevel):
             self.download_complete()
 
     def download_complete(self):
-        ttk.Label(self, text="Zakończono").grid(row=2, column=0, padx=5, pady=5)
+        self.labelvar.set('Zakończono')
         self.cancel_button.config(text="Zamknij", command=self.destroy)
         self.cancel_button.grid(row=3, column=0, padx=5, pady=5)
 
