@@ -69,13 +69,13 @@ class DownloadWindow(tk.Toplevel):
         self.cancel_button = ttk.Button(self, text="Przerwij", command=self.cancel_download)
         self.cancel_button.grid(row=2, column=0, padx=5, pady=5)
 
-    def start_download(self, num_of_files):
-        # This is a placeholder for starting the download and updating the progress bar
-        self.update_progress(num_of_files)
-
     def update_progress(self, divider):
         if self.progress['value'] < 100:
-            self.progress['value'] += 100/divider  # Increment the progress
+            summ = self.progress['value'] + round(100 / divider)
+            if summ >= 100:
+                self.progress['value'] = 100
+            else:
+                self.progress['value'] = summ  # Increment the progress
             # self.after(1000, self.update_progress)  # Call this method again after 1s.
         else:
             self.download_complete()
