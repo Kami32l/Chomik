@@ -1,20 +1,94 @@
+from urllib.parse import unquote_plus
+import os
+import requests
+import re
+import errno
+from time import sleep
 
-class GetFiles():
+
+class GetFiles:
     def __init__(self, url):
+        self.dir_path = None
         self.split_url = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
         self.names, self.ids = self.find_ids_names(url)
         self.addresses = self.generate_urls()
+        self.addresses_len = len(self.addresses)    # Ilość plików do pobrania
+        self.file_dwnl_nr = 0   # Nr pobieranego pliku
 
-    def find_ids_names(self, url):
-        pass
+    @staticmethod
+    def find_ids_names(url):
+        # finds ids and names of every file in directory
+        r = requests.get(url)
+        # print(r)
+        test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"',
+                           r.text)
+        names = []
+        ids = []
+
+        if test_1 is None:
+            names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
+        else:
+            names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
+
+        for name, ida in names_ids:
+            # print(name, ida)
+            name_split = name.split('/')
+            decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
+            # print("decoded_name:", decoded_name)
+            names.append(decoded_name)
+            ids.append(ida)
+
+        return names, ids
 
     def generate_urls(self):
-        #self.ids, self.split_url
-        pass
+        # generates download urls
+        ready_urls = []
+        for number in self.ids:
+            new_url = self.split_url[0] + 'id=' + str(number) + self.split_url[1]
+            ready_urls.append(new_url)
+        return ready_urls
+
+    def create_directory(self, dir_name):
+        self.dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
+
+        # checks if dir_name directory exists
+        if not os.path.exists(self.dir_path):
+            try:
+                os.makedirs(self.dir_path)
+            except OSError as error:
+                # there is directory already (was created since last check).
+                if error.errno != errno.EEXIST:
+                    raise
 
     def download_files_from_url(self, dir_name):
-        # self.names, self.addresses
-        pass
+        #
+        self.create_directory(dir_name)
+
+        if len(self.addresses) == 1:
+            path_to_file = self.dir_path + '\\' + self.names[0] + '.mp3'
+            self.download_file(self.addresses[0], path_to_file)
+        else:
+            for url in self.addresses:
+                path_to_file = self.dir_path + '\\' + self.names[self.file_dwnl_nr] + '.mp3'
+                self.file_dwnl_nr += 1
+                self.download_file(url, path_to_file)
+                # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
 
     def download_file(self, download_url, file_path):
-        pass
+        # https://stackoverflow.com/a/35504626 - alternative to handle retries
+        j = 0
+        not_found = True
+        while j < 3 and not_found:
+            try:
+                with requests.get(download_url, stream=True) as r:
+                    r.raise_for_status()
+                    with open(file_path, "wb") as file:
+                        # will download in chunks od chunk_size at once
+                        for chunk in r.iter_content(chunk_size=1024 * 1024):
+                            file.write(chunk)
+                not_found = False
+
+            except requests.exceptions.RequestException as error:
+                print(f"An error occurred: {error}")
+                sleep(0.1)
+                j += 1
