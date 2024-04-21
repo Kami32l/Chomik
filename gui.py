@@ -18,6 +18,8 @@ class MainApplication(tk.Frame):
         self.parent.geometry('%dx%d+%d+%d' % (self.window_width, self.window_height, self.x_pos, self.y_pos))
 
     def setup_ui(self):
+        self.parent.title('Chomik')
+
         self.grid()
 
         # Row 0: URL Entry
@@ -32,7 +34,14 @@ class MainApplication(tk.Frame):
 
         # Row 2: Buttons
         ttk.Button(self, text="Exit", command=self.parent.quit).grid(row=2, column=0, padx=5, pady=5)
-        ttk.Button(self, text="Pobierz", command=self.open_download_window).grid(row=2, column=1, padx=5, pady=5, sticky='e')
+        ttk.Button(self, text="Pobierz", command=self.verify_user_input).grid(row=2, column=1, padx=5, pady=5,
+                                                                              sticky='e')
+
+    def verify_user_input(self):
+        # TODO POBIERZ BUTTON
+        # funkcja sprawdzajaca oba inputy usera i jezeli jest git to wtedy open download window i rozpocznij pobieranie
+        if True:
+            self.open_download_window()
 
     def open_download_window(self):
         window = DownloadWindow(self.parent)
@@ -48,7 +57,7 @@ class DownloadWindow(tk.Toplevel):
     def setup_window_position(self, root):
         self.x = root.winfo_x()
         self.y = root.winfo_y()
-        self.geometry("+%d+%d" % (self.x-50, self.y))
+        self.geometry("+%d+%d" % (self.x - 50, self.y))
 
     def setup_ui(self):
         self.title("Download Status")
@@ -59,16 +68,15 @@ class DownloadWindow(tk.Toplevel):
         self.progress.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
         self.cancel_button = ttk.Button(self, text="Przerwij", command=self.cancel_download)
         self.cancel_button.grid(row=2, column=0, padx=5, pady=5)
-        self.start_download()
 
-    def start_download(self):
+    def start_download(self, num_of_files):
         # This is a placeholder for starting the download and updating the progress bar
-        self.update_progress()
+        self.update_progress(num_of_files)
 
-    def update_progress(self):
+    def update_progress(self, divider):
         if self.progress['value'] < 100:
-            self.progress['value'] += 10  # Increment the progress
-            self.after(1000, self.update_progress)  # Call this method again after 1s.
+            self.progress['value'] += 100/divider  # Increment the progress
+            # self.after(1000, self.update_progress)  # Call this method again after 1s.
         else:
             self.download_complete()
 
@@ -76,7 +84,6 @@ class DownloadWindow(tk.Toplevel):
         self.labelvar.set('Zakończono')
         self.cancel_button.config(text="Zamknij", command=self.destroy)
         self.cancel_button.grid(row=3, column=0, padx=5, pady=5)
-
 
     def cancel_download(self):
         # Placeholder for canceling the download logic
