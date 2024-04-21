@@ -1,7 +1,13 @@
-import re, requests, os, errno
+import os
+import re
+import requests
+import tkinter as tk
 from time import sleep
-from urllib.parse import unquote_plus, urlparse
+from urllib.parse import urlparse
 
+from gui import MainApplication
+from get_files import GetFiles
+from validators import is_valid_folder_name, uri_validator, url_exists
 
 # brak obsługi dla innych plików niż mp3 - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
 # przykładowy folder poprzestawiany:
@@ -19,14 +25,15 @@ def ask_user():
     while True:
         os.system('cls')
         url = input('url: ')
-        if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
+        if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
+                'http://chomikuj.pl/'):
             # print('chomik')
             print(response_to_incorrect_url)
             sleep(3)
             continue
         if url.startswith('chomikuj.pl'):
             url = 'https://' + url
-        if uri_validator(url) is False: #does it even do anythin?
+        if uri_validator(url) is False:  # does it even do anythin?
             # print('uri validator')
             print(response_to_incorrect_url)
             sleep(3)
@@ -45,162 +52,62 @@ def ask_user():
 
     return url, folder_name
 
+    # if len(urls) == 1:
+    #     path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
+    #     download_file(urls[0], path_to_file)
+    # else:
+    #     i = 0
+    #     for url in urls:
+    #         path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
+    #         i += 1
+    #         download_file(url, path_to_file)
+    #         print(f'Pobrano plik {i} z {len(urls)}.')
 
-def is_valid_folder_name(name: str):
-    # Define a regular expression pattern to match forbidden characters
-    ILLEGAL_NTFS_CHARS = r'[<>:/\\|?*\"]|[\0-\31]'
-    # Define a list of forbidden names
-    FORBIDDEN_NAMES = ['CON', 'PRN', 'AUX', 'NUL',
-                       'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-                       'COM6', 'COM7', 'COM8', 'COM9',
-                       'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5',
-                       'LPT6', 'LPT7', 'LPT8', 'LPT9']
-    # Check for forbidden characters
-    match = re.search(ILLEGAL_NTFS_CHARS, name)
-    if match:
+
+def verify_user_input(url, folder_name):
+    if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
+            'http://chomikuj.pl/'):
         return False
-    # Check for forbidden names
-    if name.upper() in FORBIDDEN_NAMES:
+    if url.startswith('chomikuj.pl'):
+        url = 'https://' + url
+    if uri_validator(url) is False:
         return False
-    # Check for empty name (disallowed in Windows)
-    if name.strip() == "":
+    if url_exists(url) is False:
         return False
-    # Check for names starting or ending with dot or space
-    match = re.match(r'^[. ]|.*[. ]$', name)
-    if match:
+    if not is_valid_folder_name(folder_name):
         return False
     return True
 
-
-def url_exists(url):
-    r = requests.get(url)
-    if r.status_code == 200:
-        return True
-    elif r.status_code == 404:
-        return False
-
-
-def uri_validator(url):
-    try:
-        result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except AttributeError:
-        return False
-
-
-def generate_urls(numbers_list, url_split):
-    # generates download urls
-    ready_urls = []
-    for number in numbers_list:
-        new_url = url_split[0] + 'id=' + str(number) + url_split[1]
-        ready_urls.append(new_url)
-    return ready_urls
-
-
-def find_ids_names(url):
-    # finds ids of every file in directory
-    r = requests.get(url)
-    # print(r)
-    test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-
-    names = []
-    ids = []
-
-    if test_1 is None:
-        names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
-
-    else:
-        names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
-
-    for name, ida in names_ids:
-        # print(name, ida)
-        name_split = name.split('/')
-        decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
-        # print("decoded_name:", decoded_name)
-        names.append(decoded_name)
-        ids.append(ida)
-
-    return names, ids
-
-
-def download_files_from_url(urls, dir_name, names, file_type="mp3"):
-    """
-    :param urls: list - one or more should be supplied
-    :param dir_name: name of the directory files will be saved in
-    :param file_type: file extension - eg: mp3, used for saving files
-    :param names: list of filenames
-    :return:
-    """
-    dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
-
-    # checks if dir_name directory exists
-    if not os.path.exists(dir_path):
-        try:
-            os.makedirs(dir_path)
-        except OSError as error:
-            # there is directory already.
-            if error.errno != errno.EEXIST:
-                raise
-    # else:
-    #     print("Folder już istnieje.")
-
-    if len(urls) == 1:
-        path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
-        download_file(urls[0], path_to_file)
-    else:
-        i = 0
-        for url in urls:
-            path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
-            i += 1
-            download_file(url, path_to_file)
-            print(f'Pobrano plik {i} z {len(urls)}.')
-
-
-def download_file(url, file_path):
-    # https://stackoverflow.com/a/35504626 - alternative to handle retries
-    j = 0
-    not_found = True
-    while j < 3 and not_found:
-        try:
-            with requests.get(url, stream=True) as r:
-                r.raise_for_status()
-                with open(file_path, "wb") as file:
-                    # will download in chunks od chunk_size at once
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        file.write(chunk)
-            not_found = False
-
-        except requests.exceptions.RequestException as error:
-            print(f"An error occurred: {error}")
-            sleep(0.1)
-            j += 1
-
-
 def main():
-    while True:
-        os.system('cls')
-        address_url, nazwa_folderu = ask_user()
+    root = tk.Tk()
 
-        nazwy, identyfikatory = find_ids_names(address_url)
-        if len(nazwy) == 0 or len(identyfikatory) == 0:
-            print("Nie znaleziono plików możliwych do pobrania.")
-            sleep(3)
-            continue
+    app = MainApplication(root, verify_input=verify_user_input)
+    app.pack(fill="both", expand=True)
+    root.mainloop()
 
-        adresy = generate_urls(identyfikatory, SPLIT_URL)
-
-        # for i in range(len(adresy)):
-        #     print(i, adresy[i])
-
-        print('Rozpoczynanie pobierania.')
-
-        download_files_from_url(adresy, nazwa_folderu, nazwy)
-
-        print('Zakończono pobieranie pomyślnie.')
-
-        continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
-        if not (continue_input == 'y' or continue_input == 'Y'):
-            break
+    # replace with gui
+    # address_url, nazwa_folderu = ask_user()
+    #
+    # nazwy, identyfikatory = find_ids_names(address_url)
+    # if len(nazwy) == 0 or len(identyfikatory) == 0:
+    #     print("Nie znaleziono plików możliwych do pobrania.")
+    #     sleep(3)
+    #     continue
+    #
+    # adresy = generate_urls(identyfikatory, SPLIT_URL)
+    #
+    # # for i in range(len(adresy)):
+    # #     print(i, adresy[i])
+    #
+    # print('Rozpoczynanie pobierania.')
+    #
+    # download_files_from_url(adresy, nazwa_folderu, nazwy)
+    #
+    # print('Zakończono pobieranie pomyślnie.')
+    #
+    # continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
+    # if not (continue_input == 'y' or continue_input == 'Y'):
+    #     break
 
 
 main()
