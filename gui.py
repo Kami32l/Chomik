@@ -6,7 +6,16 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.setup_window_position()
         self.setup_ui()
+
+    def setup_window_position(self):
+        # Setup window position
+        self.window_height = 100
+        self.window_width = 225
+        self.x_pos = (self.parent.winfo_screenwidth() / 2) - (self.window_width / 2)
+        self.y_pos = (self.parent.winfo_screenheight() / 2) - (self.window_height / 2)
+        self.parent.geometry('%dx%d+%d+%d' % (self.window_width, self.window_height, self.x_pos, self.y_pos))
 
     def setup_ui(self):
         self.grid()
@@ -33,14 +42,20 @@ class MainApplication(tk.Frame):
 class DownloadWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
+        self.setup_window_position(parent)
         self.setup_ui()
+
+    def setup_window_position(self, root):
+        self.x = root.winfo_x()
+        self.y = root.winfo_y()
+        self.geometry("+%d+%d" % (self.x-50, self.y))
 
     def setup_ui(self):
         self.title("Download Status")
         self.labelvar = tk.StringVar()
         self.labelvar.set('Pobieranie')
         self.status_label = ttk.Label(self, textvariable=self.labelvar).grid(row=0, column=0, padx=5, pady=5)
-        self.progress = ttk.Progressbar(self, mode='determinate', maximum=100)
+        self.progress = ttk.Progressbar(self, mode='determinate', maximum=100, length=320)
         self.progress.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
         self.cancel_button = ttk.Button(self, text="Przerwij", command=self.cancel_download)
         self.cancel_button.grid(row=2, column=0, padx=5, pady=5)
@@ -52,7 +67,7 @@ class DownloadWindow(tk.Toplevel):
 
     def update_progress(self):
         if self.progress['value'] < 100:
-            self.progress['value'] += 50  # Increment the progress
+            self.progress['value'] += 10  # Increment the progress
             self.after(1000, self.update_progress)  # Call this method again after 1s.
         else:
             self.download_complete()
@@ -70,6 +85,7 @@ class DownloadWindow(tk.Toplevel):
 
 def main():
     root = tk.Tk()
+
     app = MainApplication(root)
     app.pack(fill="both", expand=True)
     root.mainloop()
