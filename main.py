@@ -1,13 +1,9 @@
-import os
-import re
-import requests
 import tkinter as tk
-from time import sleep
-from urllib.parse import urlparse
 
-from gui import MainApplication
 from get_files import GetFiles
+from gui import MainApplication
 from validators import is_valid_folder_name, uri_validator, url_exists
+
 
 # brak obsługi dla innych plików niż mp3 - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
 # przykładowy folder poprzestawiany:
@@ -17,40 +13,6 @@ from validators import is_valid_folder_name, uri_validator, url_exists
 # przykładowy z jpg i mp3 plikami:
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
-SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
-
-
-def ask_user():
-    response_to_incorrect_url = 'Url doesnt seem to be valid.'
-    while True:
-        os.system('cls')
-        url = input('url: ')
-        if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
-                'http://chomikuj.pl/'):
-            # print('chomik')
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        if url.startswith('chomikuj.pl'):
-            url = 'https://' + url
-        if uri_validator(url) is False:  # does it even do anythin?
-            # print('uri validator')
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        if url_exists(url) is False:
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        break
-
-    while True:
-        folder_name = input('nazwa folderu: ')
-        if not is_valid_folder_name(folder_name):
-            continue
-        break
-
-    return url, folder_name
 
     # if len(urls) == 1:
     #     path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
@@ -67,23 +29,42 @@ def ask_user():
 def verify_user_input(url, folder_name):
     if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
             'http://chomikuj.pl/'):
-        return False
+        return 3
     if url.startswith('chomikuj.pl'):
         url = 'https://' + url
     if uri_validator(url) is False:
-        return False
+        return 3
     if url_exists(url) is False:
-        return False
+        return 3
     if not is_valid_folder_name(folder_name):
-        return False
-    return True
+        return 2
+    return 1
+
 
 def main():
     root = tk.Tk()
 
     app = MainApplication(root, verify_input=verify_user_input)
     app.pack(fill="both", expand=True)
-    root.mainloop()
+
+    while True:
+        if app.closing_app is not True:
+            root.update()
+            continue
+        break
+
+    print(app.download_window_status)
+    # if len(urls) == 1:
+    #     path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
+    #     download_file(urls[0], path_to_file)
+    # else:
+    #     i = 0
+    #     for url in urls:
+    #         path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
+    #         i += 1
+    #         download_file(url, path_to_file)
+    #         print(f'Pobrano plik {i} z {len(urls)}.')
+
 
     # replace with gui
     # address_url, nazwa_folderu = ask_user()

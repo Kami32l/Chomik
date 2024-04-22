@@ -1,11 +1,17 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 
 class MainApplication(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, verify_input, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.closing_app = False
+        self.download_window_status = False
+        self.folder = None
+        self.url = None
         self.parent = parent
+        self.verify_input = verify_input
         self.setup_window_position()
         self.setup_ui()
 
@@ -33,17 +39,32 @@ class MainApplication(tk.Frame):
         self.folder_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 2: Buttons
-        ttk.Button(self, text="Exit", command=self.parent.quit).grid(row=2, column=0, padx=5, pady=5)
+        ttk.Button(self, text="Exit", command=self.exit_app).grid(row=2, column=0, padx=5, pady=5)
         ttk.Button(self, text="Pobierz", command=self.verify_user_input).grid(row=2, column=1, padx=5, pady=5,
                                                                               sticky='e')
+
+    def exit_app(self):
+        self.closing_app = True
+        self.parent.quit()
 
     def verify_user_input(self):
         # TODO POBIERZ BUTTON
         # funkcja sprawdzajaca oba inputy usera i jezeli jest git to wtedy open download window i rozpocznij pobieranie
-        if True:
+
+        self.url = self.url_entry.get()
+        self.folder = self.folder_entry.get()
+        input_check_response = self.verify_input(self.url, self.folder)
+        if input_check_response == 1:
             self.open_download_window()
+        else:
+            if input_check_response == 3:
+                message_text = 'Nieprawidłowy url'
+            else:
+                message_text = 'Nieprawidłowa nazwa folderu.'
+            messagebox.showinfo(message=message_text)
 
     def open_download_window(self):
+        self.download_window_status = True
         window = DownloadWindow(self.parent)
         window.grab_set()
 
