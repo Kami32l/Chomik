@@ -48,6 +48,9 @@ def main():
                 print(gf.addresses)
                 print(app.folder)
                 app.window.progress['value'] = 0
+                if len(gf.addresses) == 0:
+                    app.window.message_info(message_text='Nie znaleziono plików pod podanym adresem url!')
+                    app.window.terminate_download_window()
                 if len(gf.addresses) == 1:
                     path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
                     gf.download_file(gf.addresses[0], path_to_file)

@@ -109,6 +109,13 @@ class DownloadWindow(tk.Toplevel):
         # Placeholder for canceling the download logic
         self.destroy()
 
+    def terminate_download_window(self):
+        self.destroy()
+
+    @staticmethod
+    def message_info(message_text):
+        messagebox.showinfo(message=message_text)
+
 
 def main():
     root = tk.Tk()
