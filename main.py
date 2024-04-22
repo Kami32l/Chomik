@@ -2,6 +2,7 @@ import tkinter as tk
 from get_files import GetFiles
 from gui import MainApplication
 from validators import is_valid_folder_name, uri_validator, url_exists
+import re
 
 
 # brak obsługi dla innych plików niż mp3 - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
@@ -13,11 +14,16 @@ from validators import is_valid_folder_name, uri_validator, url_exists
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
 def verify_user_input(url, folder_name):
-    if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
+    if not url.startswith('https://chomikuj.pl/') and not url.startswith(
             'http://chomikuj.pl/'):
         return 3
-    if url.startswith('chomikuj.pl'):
-        url = 'https://' + url
+    url = re.search(r'(chomikuj\.pl.+)', url)
+    if url is None:
+        return 3
+    # print(url[0])
+    if '//' in url[0] or url[0] == 'chomikuj.pl/':
+        return 3
+    url = 'https://' + url[0]
     if uri_validator(url) is False:
         return 3
     if url_exists(url) is False:
