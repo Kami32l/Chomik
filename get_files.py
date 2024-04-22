@@ -23,12 +23,17 @@ class GetFiles:
         site = 'https://chomikuj.pl'
         r = requests.get(url)
         soup = BeautifulSoup(r.content, "html.parser")
-        urls_elements = soup.find(id="listView").find("div", class_="paginator clear fileListPage").find("ul").find_all("li", class_="")
+        result = soup.find(id="listView")
 
-        for element in urls_elements:
-            relative_url = element.find('a')['href']
-            link = site + relative_url
-            page_urls.append(link)
+        try:
+            urls_elements = result.find("div", class_="paginator clear fileListPage").find("ul").find_all("li", class_="")
+            for element in urls_elements:
+                relative_url = element.find('a')['href']
+                link = site + relative_url
+                page_urls.append(link)
+        except AttributeError:
+            # print('Only one url')
+            pass
 
         return page_urls
 
