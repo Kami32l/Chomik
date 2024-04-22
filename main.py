@@ -47,8 +47,13 @@ def main():
     app = MainApplication(root, verify_input=verify_user_input)
     app.pack(fill="both", expand=True)
 
+    used_get_files = False
     while True:
         if app.closing_app is not True:
+            if app.download_window_status and not used_get_files:
+                used_get_files = True
+                gf = GetFiles(app.url)
+                print(gf.addresses)
             root.update()
             continue
         break
