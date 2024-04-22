@@ -3,6 +3,7 @@
 ## Narzędzie do pobierania plików mp3 z chomika
 
 - Narzędzie do pobierania wszystkich plików mp3 z folderu na chomiku znajdującego się pod podanym przez użytkownika url.
+- Jeżeli w folderze (na stronie) znajduje się kilka stron plików to każdą stronę z osobna trzeba pobrać.
 - Z folderu pobierze tylko pliki mp3, nie obsługuje innych formatów plików.
 - W folderze mogą znajdować się pliki z innymi rozszerzeniami i podfoldery ale ich program nie pobierze.
 - Domyślna lokalizacja zapisu to zawsze "Pobrane/nazwa folderu", gdzie "nazwa folderu" jest zdefiniowana przez użytkownika. 
