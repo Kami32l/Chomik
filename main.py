@@ -53,23 +53,49 @@ def main():
             if app.download_window_status and not used_get_files:
                 used_get_files = True
                 gf = GetFiles(app.url)
+                gf.create_directory(app.folder)
                 print(gf.addresses)
+                print(app.folder)
+                if len(gf.addresses) == 1:
+                    path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
+                    gf.download_file(gf.addresses[0], path_to_file)
+                else:
+                    progress = round(gf.file_dwnl_nr / gf.addresses_len * 100)
+                    for url in gf.addresses:
+                        path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
+                        gf.file_dwnl_nr += 1
+                        gf.download_file(url, path_to_file)
+                        app.window.update_progress(progress)
+                        root.update()
             root.update()
             continue
         break
 
     print(app.download_window_status)
-    # if len(urls) == 1:
-    #     path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
+
+    #1
+    # if len(gf.addresses) == 1:
+    #     path_to_file = dir_path + '\\' + names[0] + '.mp3'
     #     download_file(urls[0], path_to_file)
     # else:
     #     i = 0
     #     for url in urls:
-    #         path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
+    #         path_to_file = dir_path + '\\' + names[i] + '.mp3'
     #         i += 1
     #         download_file(url, path_to_file)
     #         print(f'Pobrano plik {i} z {len(urls)}.')
 
+
+    #2
+    # if len(gf.addresses) == 1:
+    #     path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
+    #     gf.download_file(gf.addresses[0], path_to_file)
+    # else:
+    #     for url in gf.addresses:
+    #         path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
+    #         gf.file_dwnl_nr += 1
+    #         gf.download_file(url, path_to_file)
+    #         # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
 
     # replace with gui
     # address_url, nazwa_folderu = ask_user()

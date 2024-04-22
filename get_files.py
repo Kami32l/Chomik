@@ -60,19 +60,19 @@ class GetFiles:
                 if error.errno != errno.EEXIST:
                     raise
 
-    def download_files_from_url(self, dir_name):
-        #
-        self.create_directory(dir_name)
-
-        if len(self.addresses) == 1:
-            path_to_file = self.dir_path + '\\' + self.names[0] + '.mp3'
-            self.download_file(self.addresses[0], path_to_file)
-        else:
-            for url in self.addresses:
-                path_to_file = self.dir_path + '\\' + self.names[self.file_dwnl_nr] + '.mp3'
-                self.file_dwnl_nr += 1
-                self.download_file(url, path_to_file)
-                # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
+    # def download_files_from_url(self, dir_name):
+    #     #
+    #     self.create_directory(dir_name)
+    #
+    #     if len(self.addresses) == 1:
+    #         path_to_file = self.dir_path + '\\' + self.names[0] + '.mp3'
+    #         self.download_file(self.addresses[0], path_to_file)
+    #     else:
+    #         for url in self.addresses:
+    #             path_to_file = self.dir_path + '\\' + self.names[self.file_dwnl_nr] + '.mp3'
+    #             self.file_dwnl_nr += 1
+    #             self.download_file(url, path_to_file)
+    #             # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
 
     def download_file(self, download_url, file_path):
         # https://stackoverflow.com/a/35504626 - alternative to handle retries

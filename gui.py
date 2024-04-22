@@ -48,7 +48,6 @@ class MainApplication(tk.Frame):
         self.parent.quit()
 
     def verify_user_input(self):
-        # TODO POBIERZ BUTTON
         # funkcja sprawdzajaca oba inputy usera i jezeli jest git to wtedy open download window i rozpocznij pobieranie
 
         self.url = self.url_entry.get()
@@ -65,8 +64,8 @@ class MainApplication(tk.Frame):
 
     def open_download_window(self):
         self.download_window_status = True
-        window = DownloadWindow(self.parent)
-        window.grab_set()
+        self.window = DownloadWindow(self.parent)
+        self.window.grab_set()
 
 
 class DownloadWindow(tk.Toplevel):
@@ -90,9 +89,9 @@ class DownloadWindow(tk.Toplevel):
         self.cancel_button = ttk.Button(self, text="Przerwij", command=self.cancel_download)
         self.cancel_button.grid(row=2, column=0, padx=5, pady=5)
 
-    def update_progress(self, divider):
+    def update_progress(self, progress):
         if self.progress['value'] < 100:
-            summ = self.progress['value'] + round(100 / divider)
+            summ = self.progress['value'] + progress
             if summ >= 100:
                 self.progress['value'] = 100
             else:
