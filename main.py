@@ -1,5 +1,4 @@
 import tkinter as tk
-
 from get_files import GetFiles
 from gui import MainApplication
 from validators import is_valid_folder_name, uri_validator, url_exists
@@ -12,19 +11,6 @@ from validators import is_valid_folder_name, uri_validator, url_exists
 # https://chomikuj.pl/barmar7/2017+ROK+2017/01+STYCZEN+2017/Audioboki+w+MP+4+i+mp3
 # przykładowy z jpg i mp3 plikami:
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
-
-
-    # if len(urls) == 1:
-    #     path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
-    #     download_file(urls[0], path_to_file)
-    # else:
-    #     i = 0
-    #     for url in urls:
-    #         path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
-    #         i += 1
-    #         download_file(url, path_to_file)
-    #         print(f'Pobrano plik {i} z {len(urls)}.')
-
 
 def verify_user_input(url, folder_name):
     if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith(
@@ -39,6 +25,11 @@ def verify_user_input(url, folder_name):
     if not is_valid_folder_name(folder_name):
         return 2
     return 1
+
+
+def round_3(a):
+    a = int(a * 1000)
+    return a / 1000
 
 
 def main():
@@ -56,70 +47,43 @@ def main():
                 gf.create_directory(app.folder)
                 print(gf.addresses)
                 print(app.folder)
+                app.window.progress['value'] = 0
                 if len(gf.addresses) == 1:
                     path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
                     gf.download_file(gf.addresses[0], path_to_file)
+
+                    # update progress bar
+                    app.window.progress['value'] = 100
+                    print(app.window.progress['value'])
+                    app.window.download_complete()
+
+                    root.update()
                 else:
-                    progress = round(gf.file_dwnl_nr / gf.addresses_len * 100)
                     for url in gf.addresses:
                         path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
                         gf.file_dwnl_nr += 1
                         gf.download_file(url, path_to_file)
-                        app.window.update_progress(progress)
+
+                        # update progress bar
+                        if app.window.progress['value'] < 100:
+                            summ = app.window.progress['value'] + round_3(1 / gf.addresses_len * 100)
+                            # print(
+                            #     f"summ: {summ}, progress[value]: {app.window.progress['value']}, gf.addresses_len: {gf.addresses_len}, round_3(1 / gf.addresses_len * 100): {round_3(1 / gf.addresses_len * 100)}")
+                            if summ >= 100 or gf.file_dwnl_nr == len(gf.addresses):
+                                app.window.progress['value'] = 100
+                                app.window.download_complete()
+                            else:
+                                app.window.progress['value'] = summ  # Increment the progress
+
+                        print(app.window.progress['value'])
                         root.update()
+                app.download_window_status = False
+                used_get_files = False
             root.update()
             continue
         break
 
     print(app.download_window_status)
-
-    #1
-    # if len(gf.addresses) == 1:
-    #     path_to_file = dir_path + '\\' + names[0] + '.mp3'
-    #     download_file(urls[0], path_to_file)
-    # else:
-    #     i = 0
-    #     for url in urls:
-    #         path_to_file = dir_path + '\\' + names[i] + '.mp3'
-    #         i += 1
-    #         download_file(url, path_to_file)
-    #         print(f'Pobrano plik {i} z {len(urls)}.')
-
-
-    #2
-    # if len(gf.addresses) == 1:
-    #     path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
-    #     gf.download_file(gf.addresses[0], path_to_file)
-    # else:
-    #     for url in gf.addresses:
-    #         path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
-    #         gf.file_dwnl_nr += 1
-    #         gf.download_file(url, path_to_file)
-    #         # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
-
-    # replace with gui
-    # address_url, nazwa_folderu = ask_user()
-    #
-    # nazwy, identyfikatory = find_ids_names(address_url)
-    # if len(nazwy) == 0 or len(identyfikatory) == 0:
-    #     print("Nie znaleziono plików możliwych do pobrania.")
-    #     sleep(3)
-    #     continue
-    #
-    # adresy = generate_urls(identyfikatory, SPLIT_URL)
-    #
-    # # for i in range(len(adresy)):
-    # #     print(i, adresy[i])
-    #
-    # print('Rozpoczynanie pobierania.')
-    #
-    # download_files_from_url(adresy, nazwa_folderu, nazwy)
-    #
-    # print('Zakończono pobieranie pomyślnie.')
-    #
-    # continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
-    # if not (continue_input == 'y' or continue_input == 'Y'):
-    #     break
 
 
 main()
