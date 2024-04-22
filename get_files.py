@@ -114,6 +114,6 @@ class GetFiles:
                 not_found = False
 
             except requests.exceptions.RequestException as error:
-                print(f"An error occurred: {error}")
+                # print(f"An error occurred: {error}")
                 sleep(0.1)
                 j += 1

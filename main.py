@@ -51,8 +51,8 @@ def main():
                 used_get_files = True
                 gf = GetFiles(app.url)
                 gf.create_directory(app.folder)
-                print(gf.addresses)
-                print(app.folder)
+                # print(gf.addresses)
+                # print(app.folder)
                 app.window.progress['value'] = 0
                 if len(gf.addresses) == 0:
                     app.window.message_info(message_text='Nie znaleziono plików pod podanym adresem url!')
@@ -63,7 +63,7 @@ def main():
 
                     # update progress bar
                     app.window.progress['value'] = 100
-                    print(app.window.progress['value'])
+                    # print(app.window.progress['value'])
                     app.window.download_complete()
 
                     root.update()
@@ -84,7 +84,7 @@ def main():
                             else:
                                 app.window.progress['value'] = summ  # Increment the progress
 
-                        print(app.window.progress['value'])
+                        # print(app.window.progress['value'])
                         root.update()
                 app.download_window_status = False
                 used_get_files = False
@@ -92,7 +92,7 @@ def main():
             continue
         break
 
-    print(app.download_window_status)
+    # print(app.download_window_status)
 
 
 main()
