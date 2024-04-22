@@ -4,39 +4,58 @@ import requests
 import re
 import errno
 from time import sleep
+from bs4 import BeautifulSoup
 
 
 class GetFiles:
     def __init__(self, url):
         self.dir_path = None
         self.split_url = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
-        self.names, self.ids = self.find_ids_names(url)
+        self.url_list = self.find_pages(url)
+        self.names, self.ids = self.find_ids_names(self.url_list)
         self.addresses = self.generate_urls()
         self.addresses_len = len(self.addresses)    # Ilość plików do pobrania
         self.file_dwnl_nr = 0   # Nr pobieranego pliku
 
     @staticmethod
-    def find_ids_names(url):
-        # finds ids and names of every file in directory
+    def find_pages(url):
+        page_urls = [url]
+        site = 'https://chomikuj.pl'
         r = requests.get(url)
-        # print(r)
-        test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"',
-                           r.text)
+        soup = BeautifulSoup(r.content, "html.parser")
+        urls_elements = soup.find(id="listView").find("div", class_="paginator clear fileListPage").find("ul").find_all("li", class_="")
+
+        for element in urls_elements:
+            relative_url = element.find('a')['href']
+            link = site + relative_url
+            page_urls.append(link)
+
+        return page_urls
+
+    @staticmethod
+    def find_ids_names(urls_list):
+        # finds ids and names of every file in directory
         names = []
         ids = []
 
-        if test_1 is None:
-            names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
-        else:
-            names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
+        for url in urls_list:
+            r = requests.get(url)
+            # print(r)
+            test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"',
+                               r.text)
 
-        for name, ida in names_ids:
-            # print(name, ida)
-            name_split = name.split('/')
-            decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
-            # print("decoded_name:", decoded_name)
-            names.append(decoded_name)
-            ids.append(ida)
+            if test_1 is None:
+                names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
+            else:
+                names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
+
+            for name, ida in names_ids:
+                # print(name, ida)
+                name_split = name.split('/')
+                decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
+                # print("decoded_name:", decoded_name)
+                names.append(decoded_name)
+                ids.append(ida)
 
         return names, ids
 
@@ -74,7 +93,8 @@ class GetFiles:
     #             self.download_file(url, path_to_file)
     #             # print(f'Pobrano plik {self.i} z {len(self.addresses)}.')
 
-    def download_file(self, download_url, file_path):
+    @staticmethod
+    def download_file(download_url, file_path):
         # https://stackoverflow.com/a/35504626 - alternative to handle retries
         j = 0
         not_found = True
