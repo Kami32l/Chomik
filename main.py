@@ -1,6 +1,8 @@
-import re, requests, os, errno
-from time import sleep
-from urllib.parse import unquote_plus, urlparse
+import tkinter as tk
+from get_files import GetFiles
+from gui import MainApplication
+from validators import is_valid_folder_name, uri_validator, url_exists
+import re
 
 
 # brak obsługi dla innych plików niż mp3 - wykorzystuje lukę do odtwarzania w przeglądarce na chomiku plików mp3
@@ -11,196 +13,86 @@ from urllib.parse import unquote_plus, urlparse
 # przykładowy z jpg i mp3 plikami:
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
-SPLIT_URL = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
+def verify_user_input(url, folder_name):
+    if not url.startswith('https://chomikuj.pl/') and not url.startswith(
+            'http://chomikuj.pl/'):
+        return 3
+    url = re.search(r'(chomikuj\.pl.+)', url)
+    if url is None:
+        return 3
+    # print(url[0])
+    if '//' in url[0] or url[0] == 'chomikuj.pl/':
+        return 3
+    url = 'https://' + url[0]
+    if uri_validator(url) is False:
+        return 3
+    if url_exists(url) is False:
+        return 3
+    if not is_valid_folder_name(folder_name):
+        return 2
+    return 1
 
 
-def ask_user():
-    response_to_incorrect_url = 'Url doesnt seem to be valid.'
-    while True:
-        os.system('cls')
-        url = input('url: ')
-        if not url.startswith('chomikuj.pl/') and not url.startswith('https://chomikuj.pl/') and not url.startswith('http://chomikuj.pl/'):
-            # print('chomik')
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        if url.startswith('chomikuj.pl'):
-            url = 'https://' + url
-        if uri_validator(url) is False: #does it even do anythin?
-            # print('uri validator')
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        if url_exists(url) is False:
-            print(response_to_incorrect_url)
-            sleep(3)
-            continue
-        break
-
-    while True:
-        folder_name = input('nazwa folderu: ')
-        if not is_valid_folder_name(folder_name):
-            continue
-        break
-
-    return url, folder_name
-
-
-def is_valid_folder_name(name: str):
-    # Define a regular expression pattern to match forbidden characters
-    ILLEGAL_NTFS_CHARS = r'[<>:/\\|?*\"]|[\0-\31]'
-    # Define a list of forbidden names
-    FORBIDDEN_NAMES = ['CON', 'PRN', 'AUX', 'NUL',
-                       'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-                       'COM6', 'COM7', 'COM8', 'COM9',
-                       'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5',
-                       'LPT6', 'LPT7', 'LPT8', 'LPT9']
-    # Check for forbidden characters
-    match = re.search(ILLEGAL_NTFS_CHARS, name)
-    if match:
-        return False
-    # Check for forbidden names
-    if name.upper() in FORBIDDEN_NAMES:
-        return False
-    # Check for empty name (disallowed in Windows)
-    if name.strip() == "":
-        return False
-    # Check for names starting or ending with dot or space
-    match = re.match(r'^[. ]|.*[. ]$', name)
-    if match:
-        return False
-    return True
-
-
-def url_exists(url):
-    r = requests.get(url)
-    if r.status_code == 200:
-        return True
-    elif r.status_code == 404:
-        return False
-
-
-def uri_validator(url):
-    try:
-        result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except AttributeError:
-        return False
-
-
-def generate_urls(numbers_list, url_split):
-    # generates download urls
-    ready_urls = []
-    for number in numbers_list:
-        new_url = url_split[0] + 'id=' + str(number) + url_split[1]
-        ready_urls.append(new_url)
-    return ready_urls
-
-
-def find_ids_names(url):
-    # finds ids of every file in directory
-    r = requests.get(url)
-    # print(r)
-    test_1 = re.search(r'<div class="fileActionsButtons clear visibleButtons  fileIdContainer" rel="([0-9]+)"', r.text)
-
-    names = []
-    ids = []
-
-    if test_1 is None:
-        names_ids = re.findall(r'<a class="downloadAction downloadContext" href=".+/(.+),([0-9]+).mp3', r.text)
-
-    else:
-        names_ids = re.findall(r'href="/(.+),([0-9]+).mp3.+" class="downloadAction downloadContext"', r.text)
-
-    for name, ida in names_ids:
-        # print(name, ida)
-        name_split = name.split('/')
-        decoded_name = unquote_plus(name_split[-1].replace('*', '%'))
-        # print("decoded_name:", decoded_name)
-        names.append(decoded_name)
-        ids.append(ida)
-
-    return names, ids
-
-
-def download_files_from_url(urls, dir_name, names, file_type="mp3"):
-    """
-    :param urls: list - one or more should be supplied
-    :param dir_name: name of the directory files will be saved in
-    :param file_type: file extension - eg: mp3, used for saving files
-    :param names: list of filenames
-    :return:
-    """
-    dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
-
-    # checks if dir_name directory exists
-    if not os.path.exists(dir_path):
-        try:
-            os.makedirs(dir_path)
-        except OSError as error:
-            # there is directory already.
-            if error.errno != errno.EEXIST:
-                raise
-    # else:
-    #     print("Folder już istnieje.")
-
-    if len(urls) == 1:
-        path_to_file = dir_path + '\\' + names[0] + f'.{file_type}'
-        download_file(urls[0], path_to_file)
-    else:
-        i = 0
-        for url in urls:
-            path_to_file = dir_path + '\\' + names[i] + f'.{file_type}'
-            i += 1
-            download_file(url, path_to_file)
-            print(f'Pobrano plik {i} z {len(urls)}.')
-
-
-def download_file(url, file_path):
-    # https://stackoverflow.com/a/35504626 - alternative to handle retries
-    j = 0
-    not_found = True
-    while j < 3 and not_found:
-        try:
-            with requests.get(url, stream=True) as r:
-                r.raise_for_status()
-                with open(file_path, "wb") as file:
-                    # will download in chunks od chunk_size at once
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        file.write(chunk)
-            not_found = False
-
-        except requests.exceptions.RequestException as error:
-            print(f"An error occurred: {error}")
-            sleep(0.1)
-            j += 1
+def round_3(a):
+    a = int(a * 1000)
+    return a / 1000
 
 
 def main():
+    root = tk.Tk()
+
+    app = MainApplication(root, verify_input=verify_user_input)
+    app.pack(fill="both", expand=True)
+
+    used_get_files = False
     while True:
-        os.system('cls')
-        address_url, nazwa_folderu = ask_user()
+        if app.closing_app is not True:
+            if app.download_window_status and not used_get_files:
+                used_get_files = True
+                gf = GetFiles(app.url)
+                gf.create_directory(app.folder)
+                # print(gf.addresses)
+                # print(app.folder)
+                app.window.progress['value'] = 0
+                if len(gf.addresses) == 0:
+                    app.window.message_info(message_text='Nie znaleziono plików pod podanym adresem url!')
+                    app.window.terminate_download_window()
+                if len(gf.addresses) == 1:
+                    path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
+                    gf.download_file(gf.addresses[0], path_to_file)
 
-        nazwy, identyfikatory = find_ids_names(address_url)
-        if len(nazwy) == 0 or len(identyfikatory) == 0:
-            print("Nie znaleziono plików możliwych do pobrania.")
-            sleep(3)
+                    # update progress bar
+                    app.window.progress['value'] = 100
+                    # print(app.window.progress['value'])
+                    app.window.download_complete()
+
+                    root.update()
+                else:
+                    for url in gf.addresses:
+                        path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
+                        gf.file_dwnl_nr += 1
+                        gf.download_file(url, path_to_file)
+
+                        # update progress bar
+                        if app.window.progress['value'] < 100:
+                            summ = app.window.progress['value'] + round_3(1 / gf.addresses_len * 100)
+                            # print(
+                            #     f"summ: {summ}, progress[value]: {app.window.progress['value']}, gf.addresses_len: {gf.addresses_len}, round_3(1 / gf.addresses_len * 100): {round_3(1 / gf.addresses_len * 100)}")
+                            if summ >= 100 or gf.file_dwnl_nr == len(gf.addresses):
+                                app.window.progress['value'] = 100
+                                app.window.download_complete()
+                            else:
+                                app.window.progress['value'] = summ  # Increment the progress
+
+                        # print(app.window.progress['value'])
+                        root.update()
+                app.download_window_status = False
+                used_get_files = False
+            root.update()
             continue
+        break
 
-        adresy = generate_urls(identyfikatory, SPLIT_URL)
-
-        # for i in range(len(adresy)):
-        #     print(i, adresy[i])
-
-        print('Rozpoczynanie pobierania.')
-
-        download_files_from_url(adresy, nazwa_folderu, nazwy)
-
-        print('Zakończono pobieranie pomyślnie.')
-
-        continue_input = input('Czy chcesz pobierać kolejne pliki? wpisz "y" lub "Y" jeżeli chcesz kontynuować: ')
-        if not (continue_input == 'y' or continue_input == 'Y'):
-            break
+    # print(app.download_window_status)
 
 
 main()
