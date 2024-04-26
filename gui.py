@@ -35,12 +35,13 @@ class MainApplication(tk.Frame):
         self.url_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 1: Folder Entry
-        ttk.Button(self, text="SELECT FOLDER", command=self.ask_directory).grid(row=1, column=0, padx=5, pady=5, columnspan=2)
+        ttk.Label(self, text="Folder").grid(row=1, column=0, padx=5, pady=5)
+        ttk.Button(self, text="SELECT FOLDER", command=self.ask_directory).grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 2: Buttons
-        ttk.Button(self, text="Wyjdź", command=self.exit_app).grid(row=2, column=0, padx=5, pady=5)
+        ttk.Button(self, text="Wyjdź", command=self.exit_app).grid(row=2, column=0, padx=5, pady=5, sticky="ew")
         ttk.Button(self, text="Pobierz", command=self.verify_user_input).grid(row=2, column=1, padx=5, pady=5,
-                                                                              sticky='e')
+                                                                              sticky='ew')
 
     def ask_directory(self):
         self.folder = filedialog.askdirectory()
