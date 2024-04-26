@@ -47,7 +47,7 @@ class MainApplication(tk.Frame):
         self.folder = filedialog.askdirectory()
 
     def on_closing(self):
-        if messagebox.askokcancel("Wyjdź", "Czy chcesz wyjść?"):
+        if messagebox.askokcancel("Wyjść?", "Czy chcesz opuścić aplikację?"):
             self.parent.destroy()
 
     def exit_app(self):
@@ -86,6 +86,7 @@ class DownloadWindow(tk.Toplevel):
         super().__init__(parent)
         self.setup_window_position(parent)
         self.setup_ui()
+        self.continue_download = True
 
     def setup_window_position(self, root):
         self.x = root.winfo_x()
@@ -120,9 +121,11 @@ class DownloadWindow(tk.Toplevel):
 
     def cancel_download(self):
         # Placeholder for canceling the download logic
+        self.continue_download = False
         self.destroy()
 
     def terminate_download_window(self):
+        self.continue_download = False
         self.destroy()
 
     @staticmethod

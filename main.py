@@ -58,6 +58,9 @@ def main():
                     app.window.message_info(message_text='Nie znaleziono plików pod podanym adresem url!')
                     app.window.terminate_download_window()
                 if len(gf.addresses) == 1:
+                    if not app.window.continue_download:
+                        app.window.message_info('Przerwano pobieranie')
+                        break
                     path_to_file = app.folder + '\\' + gf.names[0] + '.mp3'
                     gf.download_file(gf.addresses[0], path_to_file)
 
@@ -69,6 +72,9 @@ def main():
                     root.update()
                 else:
                     for url in gf.addresses:
+                        if not app.window.continue_download:
+                            app.window.message_info('Przerwano pobieranie')
+                            break
                         path_to_file = app.folder + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
                         gf.file_dwnl_nr += 1
                         gf.download_file(url, path_to_file)
