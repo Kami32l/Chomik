@@ -38,6 +38,7 @@ def round_3(a):
 
 def main():
     root = tk.Tk()
+    root.iconbitmap("hamster.ico")
 
     app = MainApplication(root, verify_input=verify_user_input)
     app.pack(fill="both", expand=True)
