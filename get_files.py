@@ -1,15 +1,14 @@
 from urllib.parse import unquote_plus
-import os
 import requests
 import re
-import errno
+# import errno
 from time import sleep
 from bs4 import BeautifulSoup
 
 
 class GetFiles:
     def __init__(self, url):
-        self.dir_path = None
+        # self.dir_path = None
         self.split_url = ['https://chomikuj.pl/Audio.ashx?', '&type=2&tp=mp3']
         self.url_list = self.find_pages(url)
         self.names, self.ids = self.find_ids_names(self.url_list)
@@ -72,17 +71,17 @@ class GetFiles:
             ready_urls.append(new_url)
         return ready_urls
 
-    def create_directory(self, dir_name):
-        self.dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
-
-        # checks if dir_name directory exists
-        if not os.path.exists(self.dir_path):
-            try:
-                os.makedirs(self.dir_path)
-            except OSError as error:
-                # there is directory already (was created since last check).
-                if error.errno != errno.EEXIST:
-                    raise
+    # def create_directory(self, dir_name):
+    #     self.dir_path = os.path.join(os.path.expanduser('~'), f'Downloads\\{dir_name}')
+    #
+    #     # checks if dir_name directory exists
+    #     if not os.path.exists(self.dir_path):
+    #         try:
+    #             os.makedirs(self.dir_path)
+    #         except OSError as error:
+    #             # there is directory already (was created since last check).
+    #             if error.errno != errno.EEXIST:
+    #                 raise
 
     # def download_files_from_url(self, dir_name):
     #     #

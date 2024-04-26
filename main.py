@@ -1,7 +1,7 @@
 import tkinter as tk
 from get_files import GetFiles
 from gui import MainApplication
-from validators import is_valid_folder_name, uri_validator, url_exists
+from validators import uri_validator, url_exists
 import re
 
 
@@ -13,7 +13,7 @@ import re
 # przykładowy z jpg i mp3 plikami:
 # https://chomikuj.pl/JuRiWlO/Audiobooki/AUDIOBOOK/Polskie/Pilipiuk+Andrzej/Pilipiuk+Andrzej+-+Cykl+Kroniki+Jakuba+Wedrowniczka/Pilipiuk+Andrzej+-++Faceci+w+gumofilcach
 
-def verify_user_input(url, folder_name):
+def verify_user_input(url):
     if not url.startswith('https://chomikuj.pl/') and not url.startswith(
             'http://chomikuj.pl/'):
         return 3
@@ -28,8 +28,6 @@ def verify_user_input(url, folder_name):
         return 3
     if url_exists(url) is False:
         return 3
-    if not is_valid_folder_name(folder_name):
-        return 2
     return 1
 
 
@@ -50,7 +48,6 @@ def main():
             if app.download_window_status and not used_get_files:
                 used_get_files = True
                 gf = GetFiles(app.url)
-                gf.create_directory(app.folder)
                 # print(gf.addresses)
                 # print(app.folder)
                 app.window.progress['value'] = 0
@@ -58,7 +55,7 @@ def main():
                     app.window.message_info(message_text='Nie znaleziono plików pod podanym adresem url!')
                     app.window.terminate_download_window()
                 if len(gf.addresses) == 1:
-                    path_to_file = gf.dir_path + '\\' + gf.names[0] + '.mp3'
+                    path_to_file = app.folder + '\\' + gf.names[0] + '.mp3'
                     gf.download_file(gf.addresses[0], path_to_file)
 
                     # update progress bar
@@ -69,7 +66,7 @@ def main():
                     root.update()
                 else:
                     for url in gf.addresses:
-                        path_to_file = gf.dir_path + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
+                        path_to_file = app.folder + '\\' + gf.names[gf.file_dwnl_nr] + '.mp3'
                         gf.file_dwnl_nr += 1
                         gf.download_file(url, path_to_file)
 

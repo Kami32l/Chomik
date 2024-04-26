@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 
 
 class MainApplication(tk.Frame):
@@ -34,14 +35,15 @@ class MainApplication(tk.Frame):
         self.url_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 1: Folder Entry
-        ttk.Label(self, text="Folder:").grid(row=1, column=0, padx=5, pady=5)
-        self.folder_entry = ttk.Entry(self)
-        self.folder_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(self, text="SELECT FOLDER", command=self.ask_directory).grid(row=1, column=0, padx=5, pady=5, columnspan=2)
 
         # Row 2: Buttons
-        ttk.Button(self, text="Exit", command=self.exit_app).grid(row=2, column=0, padx=5, pady=5)
+        ttk.Button(self, text="Wyjdź", command=self.exit_app).grid(row=2, column=0, padx=5, pady=5)
         ttk.Button(self, text="Pobierz", command=self.verify_user_input).grid(row=2, column=1, padx=5, pady=5,
                                                                               sticky='e')
+
+    def ask_directory(self):
+        self.folder = filedialog.askdirectory()
 
     def exit_app(self):
         self.closing_app = True
@@ -51,16 +53,13 @@ class MainApplication(tk.Frame):
         # funkcja sprawdzajaca oba inputy usera i jezeli jest git to wtedy open download window i rozpocznij pobieranie
 
         self.url = self.url_entry.get()
-        self.folder = self.folder_entry.get()
-        input_check_response = self.verify_input(self.url, self.folder)
+        input_check_response = self.verify_input(self.url)
         if input_check_response == 1:
             self.open_download_window()
         else:
             if input_check_response == 3:
                 message_text = 'Nieprawidłowy url'
-            else:
-                message_text = 'Nieprawidłowa nazwa folderu.'
-            messagebox.showinfo(message=message_text)
+                messagebox.showinfo(message=message_text)
 
     def open_download_window(self):
         self.download_window_status = True
@@ -117,13 +116,13 @@ class DownloadWindow(tk.Toplevel):
         messagebox.showinfo(message=message_text)
 
 
-def main():
-    root = tk.Tk()
-
-    app = MainApplication(root)
-    app.pack(fill="both", expand=True)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     root = tk.Tk()
+#
+#     app = MainApplication(root)
+#     app.pack(fill="both", expand=True)
+#     root.mainloop()
+#
+#
+# if __name__ == "__main__":
+#     main()
