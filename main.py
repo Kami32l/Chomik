@@ -43,6 +43,8 @@ def main():
     app = MainApplication(root, verify_input=verify_user_input)
     app.pack(fill="both", expand=True)
 
+    root.protocol("WM_DELETE_WINDOW", app.on_closing)
+
     used_get_files = False
     while True:
         if app.closing_app is not True:

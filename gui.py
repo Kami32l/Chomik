@@ -35,7 +35,7 @@ class MainApplication(tk.Frame):
         self.url_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 1: Folder Entry
-        ttk.Label(self, text="Folder").grid(row=1, column=0, padx=5, pady=5)
+        ttk.Label(self, text="Folder:").grid(row=1, column=0, padx=5, pady=5)
         ttk.Button(self, text="SELECT FOLDER", command=self.ask_directory).grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
         # Row 2: Buttons
@@ -46,21 +46,34 @@ class MainApplication(tk.Frame):
     def ask_directory(self):
         self.folder = filedialog.askdirectory()
 
+    def on_closing(self):
+        if messagebox.askokcancel("Wyjdź", "Czy chcesz wyjść?"):
+            self.parent.destroy()
+
     def exit_app(self):
         self.closing_app = True
-        self.parent.quit()
+        self.on_closing()
+        # self.parent.quit()
 
     def verify_user_input(self):
         # funkcja sprawdzajaca oba inputy usera i jezeli jest git to wtedy open download window i rozpocznij pobieranie
 
         self.url = self.url_entry.get()
         input_check_response = self.verify_input(self.url)
-        if input_check_response == 1:
+
+
+        if input_check_response == 1 and self.folder is not None:
             self.open_download_window()
         else:
-            if input_check_response == 3:
+            if self.folder is None and input_check_response == 3:
+                message_text = ('Nie wybrano folderu \n'
+                                'Nieprawidłowy url')
+            elif input_check_response == 3:
                 message_text = 'Nieprawidłowy url'
-                messagebox.showinfo(message=message_text)
+            elif self.folder is None:
+                message_text = ('Nie wybrano folderu')
+            messagebox.showinfo(message=message_text)
+
 
     def open_download_window(self):
         self.download_window_status = True
